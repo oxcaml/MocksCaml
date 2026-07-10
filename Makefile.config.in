@@ -1,0 +1,7 @@
+# @configure_input@
+prefix = @prefix@
+OCAMLOPT = @OCAMLOPT@
+CC = @CC@
+enable_dev = @enable_dev@
+keyword_edition = @keyword_edition@
+warn_error = @warn_error@
