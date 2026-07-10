@@ -1,0 +1,17 @@
+opam-version: "2.0"
+synopsis: "MocksCaml CI dependencies meta-package"
+maintainer: "oxcaml-team"
+license: "MIT"
+authors: "oxcaml-team"
+homepage: "https://github.com/oxcaml/MocksCaml"
+bug-reports: "https://github.com/oxcaml/MocksCaml/issues"
+dev-repo: "git+https://github.com/oxcaml/MocksCaml"
+# The package name and version match oxcaml's oxcaml-ci-deps so that the
+# `Set up Opam` workflow step stays byte-identical to oxcaml's. The
+# dependencies are trimmed to just a stock compiler: the mock build only
+# needs ocamlopt (so the version string's mention of ocamlformat is a lie).
+depends: [
+  "ocaml-base-compiler" {= "5.4.0"}
+]
+build: []
+install: []
