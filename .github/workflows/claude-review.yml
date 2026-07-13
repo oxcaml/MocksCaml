@@ -69,6 +69,11 @@ jobs:
       - name: Run Claude Review
         uses: anthropics/claude-code-action@ba0aafd4308cbba7165f9f2cdb0cfbed5a3c99ce # v1.0.168
         with:
+          # TEMPORARY (diagnostic): unmask the SDK output so the actual
+          # first-turn API error is visible in the run log. Revert once reviews
+          # post. Safe here: the repo is public (inputs are non-secret) and the
+          # run fails on turn 1 before reading the diff.
+          show_full_output: true
           # Workload Identity Federation identifiers, not credentials (see the
           # WIF section in .github/claude-code-security.md).
           anthropic_federation_rule_id: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
