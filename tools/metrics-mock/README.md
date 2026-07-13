@@ -2,8 +2,10 @@
 
 This directory prototypes a revision to how OxCaml build/perf metrics get from
 `oxcaml/oxcaml` into `oxcaml/oxcaml-metrics` (the CSV store + GitHub Pages
-dashboard). It is a **mock**: the workflow steps run in DRY-RUN mode and nothing
-is cloned from or pushed to the real metrics repo.
+dashboard). It is a **mock**: the `push-metrics` job runs live against the
+throwaway `oxcaml/MocksCaml-metrics` repo (set `env.METRICS_REPO`), never the
+real `oxcaml/oxcaml-metrics`. `run-local.sh` here exercises the same logic fully
+offline (no clone/push at all).
 
 ## The problem with the current setup
 
@@ -50,14 +52,18 @@ if the raw archive grows large enough to warrant it.
 
 ## Files
 
-- `convert_metrics.py` — verbatim copy of the converter from `oxcaml/oxcaml-metrics`
-  (`scripts/convert_metrics.py`). In production it comes from the sparse clone; it is
-  vendored here only so the mock can run offline. Stdlib-only.
+- `convert_metrics.py` — verbatim copy of the converter from the metrics repo
+  (`scripts/convert_metrics.py`). The live `push-metrics` job gets it from the
+  sparse clone; this copy exists only so `run-local.sh` can run offline. Stdlib-only.
 - `run-local.sh` — runs the whole revised flow offline against synthetic raw:
   convert → data-only commit (asserts no `raw-data/` leaks in) → prints the
   `gh release upload` dry-run commands. `bash tools/metrics-mock/run-local.sh`.
 
-The corresponding CI job is `push-metrics` in `.github/workflows/build.yml`.
+The corresponding live CI job is `push-metrics` in `.github/workflows/build.yml`.
+It authenticates with a short-lived token minted by the metrics GitHub App
+(`vars.APP_ID` + `secrets.PRIVATE_KEY`, set on the `metrics` environment),
+sparse-clones `METRICS_REPO`, commits only `data/`, and archives the raw to a
+monthly `raw-YYYY-MM` Release.
 
 ## Parity
 
