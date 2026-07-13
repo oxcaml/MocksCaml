@@ -108,6 +108,11 @@ jobs:
             local fix, include it in the inline comment as a GitHub suggestion
             block so the author can apply it with one click.
 
+            Begin the summary comment with this exact line, followed by a
+            blank line:
+
+            > 🤖 **Claude Code review**
+
 
           # This workflow supplies a `prompt`, so the action runs in "agent
           # mode", which differs from claude.yml's "tag mode" in ways that
