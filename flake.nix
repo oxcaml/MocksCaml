@@ -34,7 +34,6 @@
         in
         {
           inherit mockscaml;
-          mockscaml-dev = mockscaml.override { dev = true; };
           default = mockscaml;
         }
       );
@@ -44,7 +43,6 @@
         lib.attrsets.filterAttrs (key: drv: !(drv.meta.broken or false)) {
           inherit (self.packages.${system})
             mockscaml
-            mockscaml-dev
             ;
         }
       );
