@@ -360,22 +360,34 @@ jobs:
             --artifact-sizes "$art" --profiles "$prof" --output-dir metrics-repo/data
 
           # 3. Commit ONLY data/ and push (raw never enters the metrics git repo).
+          # Guard on the staged diff so re-running this job is idempotent: if a
+          # previous attempt already pushed the data commit (and only the release
+          # upload flaked), the reproduced CSV stages nothing and `git commit` would
+          # exit 1 under `set -e`, failing before the upload we came back to finish.
           git -C metrics-repo add data/
-          git -C metrics-repo commit -q -m "Add processed metrics for commit ${GITHUB_SHA}"
-          if git -C metrics-repo show --name-only --pretty=format: HEAD | grep -q '^raw-data/'; then
-            echo "ERROR: commit contains raw-data/ — raw leaked into git" >&2; exit 1
+          if git -C metrics-repo diff --cached --quiet; then
+            echo "data/ unchanged (re-run of an already-pushed conversion); skipping commit"
+          else
+            git -C metrics-repo commit -q -m "Add processed metrics for commit ${GITHUB_SHA}"
+            if git -C metrics-repo show --name-only --pretty=format: HEAD | grep -q '^raw-data/'; then
+              echo "ERROR: commit contains raw-data/ — raw leaked into git" >&2; exit 1
+            fi
+            git -C metrics-repo show --stat --oneline HEAD
+            # Retry is conflict-free: each run adds a uniquely-named
+            # data/metrics-<date>-<sha>.csv, so concurrent runs never touch the same
+            # file (no more producer/processor ping-pong).
+            git -C metrics-repo push \
+              || (git -C metrics-repo pull --rebase && git -C metrics-repo push)
           fi
-          git -C metrics-repo show --stat --oneline HEAD
-          # Retry is conflict-free: each run adds a uniquely-named
-          # data/metrics-<date>-<sha>.csv, so concurrent runs never touch the same
-          # file (no more producer/processor ping-pong).
-          git -C metrics-repo push \
-            || (git -C metrics-repo pull --rebase && git -C metrics-repo push)
 
           # 4. Durably archive the raw as a monthly Release asset (out of git).
+          # Tolerate the release already existing (a same-month run racing us), but
+          # let a real create failure (auth/permissions) surface instead of turning
+          # into a misleading "release not found" from the upload below.
           month=$(basename "$art" | sed -E 's/^artifact-sizes-([0-9]{4}-[0-9]{2}).*/\1/')
           gh release create "raw-$month" --repo "$METRICS_REPO" \
-            --title "Raw metrics $month" --notes "Raw profiles + artifact sizes" 2>/dev/null || true
+            --title "Raw metrics $month" --notes "Raw profiles + artifact sizes" \
+            || gh release view "raw-$month" --repo "$METRICS_REPO" >/dev/null
           gh release upload "raw-$month" --repo "$METRICS_REPO" --clobber "$art" "$prof"
 
 concurrency:
