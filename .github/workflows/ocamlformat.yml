@@ -27,7 +27,7 @@ jobs:
             os: ubuntu-latest
     steps:
       - name: Checkout the MocksCaml repo
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -39,7 +39,7 @@ jobs:
         # makes setup-ocaml skip apt-get, which is slow on first invocation
 
       - name: Set up Opam
-        uses: ocaml/setup-ocaml@e32b06a3e831ff2fbc6f08cf35be2085e3918014 # v3.6.1
+        uses: ocaml/setup-ocaml@15d660006c1d3110d77c34b7faa3bddefe8b82f0 # v3.7.0
         with:
           ocaml-compiler: oxcaml-ci-deps.5.4.0-with-ocaml.5.4.0-with-ocamlformat.0.29.0
           opam-repositories: |
